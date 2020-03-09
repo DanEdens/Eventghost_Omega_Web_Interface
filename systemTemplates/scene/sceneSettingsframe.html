@@ -1,0 +1,102 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+<link href="/style/style.css" rel="stylesheet" type="text/css">
+
+
+<script type="text/javascript" src="/scripts/jquery.js"></script>
+<script type="text/javascript" src="/scripts/jquery.nicescroll.js"></script>
+<script type="text/javascript" src="/scripts/localFunctions.js"></script>
+<script type="text/javascript">
+
+var configData={};
+var onOffMapping={"retriggerBehaviour":[0,1,2],"onStart":[0,1,2,3]};
+
+var printData;
+function configPrint(id){
+  var contentStr='<table class="stdtable" border="0" cellpadding="0" cellspacing="0"><tr><td><button class="p2 w2 defaultNH">'+top.getText("sceneSettings"+id,"name")+':</button></td></tr>';
+  for (var i=0; i<onOffMapping[id].length; i++){
+    contentStr+='<tr><td><button class="p1 w2';
+    if (configData[id]==onOffMapping[id][i]){
+      contentStr+=' green';
+    }
+    else{
+      contentStr+=' default';
+    }
+    contentStr+='" onClick="setConfig(\''+id+'\','+onOffMapping[id][i]+')">'+top.getText('sceneSettings'+id,onOffMapping[id][i])+'</button></td></tr>';
+  }
+  contentStr+='</table>';
+  document.getElementById(id+"Content").innerHTML=contentStr;
+}
+
+function setConfig(vari,newValue){
+  configData[vari]=newValue;
+  configPrint(vari);
+}
+
+function saveF(){
+  parent.sceneSetting(5,configData["retriggerBehaviour"]);
+  parent.sceneSetting(6,configData["onStart"]);
+}
+
+function clearAll(){
+  setConfig("retriggerBehaviour",0);
+  setConfig("onStart",0);
+}
+
+var oldScene=-1;
+omega.OnUpdate(function(ext){
+  if (ext=="reload" || ext=="load" && oldScene!=top.sceneChoosen){
+    oldScene=top.sceneChoosen;
+    var settings = top.scenesIds[top.scenesFind[top.sceneChoosen]];
+    setConfig("retriggerBehaviour",settings[5]||0);
+    setConfig("onStart",settings[6]||0);
+  }
+});
+
+omega.OnLoad(function(){
+    document.getElementById("okB").innerHTML = '<button class="p1 w2 default Hgreen" onClick="saveF();">'+top.getText('saveChanges',0)+'</button>';
+    document.getElementById("clearB").innerHTML = '<button class="p1 w2 default Hred" onClick="clearAll();">'+top.getText('clearSettings',0)+'</button>';
+    omega.OnBeforeUnload(function (){
+      var settings = top.scenesIds[top.scenesFind[top.sceneChoosen]];
+      if (configData["retriggerBehaviour"]!=settings[5] || configData["onStart"]!=settings[6]){
+        if (!confirm(omega.GetText('discardUnsavedSettings'))){
+          return false;
+        }
+      }
+    });
+});
+
+</script>
+
+</head>
+
+<body>
+<center>
+<table style="width:100%;" border="0" cellpadding="0" cellspacing="0">
+    <tr valign="top" class="title">
+      <td align="right">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr>
+            <td><div id="clearB"></div></td>
+            <td class="border3"></td>
+            <td><div id="okB"></div></td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+    <tr align="center" valign="top">
+      <td align="center" colspan="2">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr valign="top">
+            <td colspan="2" id="onStartContent"></td>
+            <td colspan="2" id="retriggerBehaviourContent"></td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+</table>
+</center>
+</body>
+</html>
